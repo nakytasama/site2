@@ -28,7 +28,7 @@ public class LoginServlet extends HttpServlet {
 
                 // Перенаправляем в зависимости от роли
                 if ("admin".equals(user.getRole())) {
-                    resp.sendRedirect(req.getContextPath() + "/admin.jsp");
+                    resp.sendRedirect(req.getContextPath() + "/admin");
                 } else {
                     resp.sendRedirect(req.getContextPath() + "/home");
                 }
