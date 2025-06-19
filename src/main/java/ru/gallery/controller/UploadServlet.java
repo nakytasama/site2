@@ -13,23 +13,17 @@ import java.util.UUID;
 
 @WebServlet("/upload")
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024,      // 1 MB
-        maxFileSize = 1024 * 1024 * 10,      // 10 MB
-        maxRequestSize = 1024 * 1024 * 50    // 50 MB
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 1024 * 1024 * 10,
+        maxRequestSize = 1024 * 1024 * 50
 )
 public class UploadServlet extends HttpServlet {
     private final ImageService imageService = new ImageServiceImpl();
-    private String uploadPath;
+    private final String uploadPath = "C:\\Users\\nakyt\\IdeaProjects\\uploads";
 
     @Override
-    public void init() {
-        uploadPath = getServletContext().getRealPath("") + File.separator + "uploads";
-        File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) uploadDir.mkdir();
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
         HttpSession session = req.getSession();
         User user = (User) session.getAttribute("user");
 
@@ -41,28 +35,31 @@ public class UploadServlet extends HttpServlet {
         try {
             Image image = new Image();
             image.setUserId(user.getId());
-
-            // Обработка текстовых полей
             image.setTitle(req.getParameter("title"));
             image.setDescription(req.getParameter("description"));
 
-            // Обработка файла
-            Part filePart = req.getPart("file"); // 'file' - name поля загрузки файла в форме
+            Part filePart = req.getPart("file");
             if (filePart != null && filePart.getSize() > 0) {
+                String mimeType = filePart.getContentType();
+                // проверяем, что это изображение
+                if (mimeType == null || !mimeType.startsWith("image/")) {
+                    throw new ServletException("Можно загружать только изображения");
+                }
                 String originalFileName = filePart.getSubmittedFileName();
                 String safeFileName = originalFileName.replaceAll("[^a-zA-Z0-9.-]", "_");
-                String fileName = UUID.randomUUID().toString() + "_" + safeFileName;
+                String fileName = UUID.randomUUID() + "_" + safeFileName;
 
-                File targetFile = new File(uploadPath + File.separator + fileName);
+                File targetFile = new File(uploadPath, fileName);
                 filePart.write(targetFile.getAbsolutePath());
 
-                image.setImagePath("uploads/" + fileName);
+                image.setImagePath(fileName);
             }
 
             imageService.addImage(image);
             resp.sendRedirect("profile");
         } catch (Exception e) {
-            throw new ServletException("Ошибка при загрузке файла", e);
+            req.setAttribute("error", "Ошибка при добавлении: " + e.getMessage());
+            req.getRequestDispatcher("add-image.jsp").forward(req, resp);
         }
     }
 }

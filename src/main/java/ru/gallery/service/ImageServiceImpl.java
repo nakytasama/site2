@@ -114,6 +114,18 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
+    @Override
+    public void updateImageInfo(int id, String title, String description) throws SQLException {
+        String sql = "UPDATE images SET title = ?, description = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, title);
+            stmt.setString(2, description);
+            stmt.setInt(3, id);
+            stmt.executeUpdate();
+        }
+    }
+
     private Image createImageFromResultSet(ResultSet rs) throws SQLException {
         Image image = new Image();
         image.setId(rs.getInt("id"));
