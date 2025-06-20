@@ -81,6 +81,16 @@
         <version>3.3.2</version>
       </plugin>
     </plugins>
+
+    <resources>
+      <resource>
+        <directory>webapp</directory>
+        <targetPath>META-INF/resources</targetPath>
+        <includes>
+          <include>uploads/**</include>
+        </includes>
+      </resource>
+    </resources>
   </build>
 
 </project>
